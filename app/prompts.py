@@ -35,8 +35,15 @@ Return your analysis as valid JSON with this exact structure:
     "A third piece of concrete evidence"
   ],
   "recommended_fix": "One clear, specific action to take. Start with a verb like 'Add', 'Constrain', 'Inject', 'Remove', or 'Require'.",
-  "confidence": "high, medium, or low based on how clear the evidence is"
+  "confidence": "high, medium, or low based on how clear the evidence is",
+  "failure_point": {
+    "step_number": 1,
+    "step_description": "Brief description of what the agent did at this step",
+    "reason": "Why this specific step caused or initiated the failure"
+  }
 }
+
+IMPORTANT: The failure_point must identify the FIRST step where things went wrong. Look at the execution trace and pinpoint the exact step number (1, 2, 3, etc.) where the agent made the critical mistake that led to the failure.
 
 Remember: You are diagnosing structural failures in how the agent was designed or operated, not judging whether the LLM is "smart enough"."""
 

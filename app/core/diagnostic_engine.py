@@ -4,7 +4,7 @@ Core diagnostic engine that analyzes agent failures using LLM
 import json
 import asyncio
 from openai import AsyncOpenAI
-from app.models.schemas import DiagnosisRequest, DiagnosisResponse
+from app.models.schemas import DiagnosisRequest, DiagnosisResponse, FailurePoint
 from app.prompts import DIAGNOSTIC_SYSTEM_PROMPT, build_diagnostic_prompt
 from app.config import settings
 
@@ -57,7 +57,7 @@ async def diagnose_agent_failure(request: DiagnosisRequest) -> DiagnosisResponse
             result_json = json.loads(result_text)
             
             # Validate required fields
-            required_fields = ["verdict", "explanation", "evidence", "recommended_fix"]
+            required_fields = ["verdict", "explanation", "evidence", "recommended_fix", "failure_point"]
             for field in required_fields:
                 if field not in result_json:
                     raise ValueError(f"Missing required field: {field}")
@@ -70,13 +70,29 @@ async def diagnose_agent_failure(request: DiagnosisRequest) -> DiagnosisResponse
             if "confidence" not in result_json:
                 result_json["confidence"] = "medium"
             
+            # Validate failure_point structure
+            fp = result_json["failure_point"]
+            if not isinstance(fp, dict):
+                raise ValueError("failure_point must be an object")
+            for fp_field in ["step_number", "step_description", "reason"]:
+                if fp_field not in fp:
+                    raise ValueError(f"failure_point missing required field: {fp_field}")
+            
+            # Create FailurePoint object
+            failure_point = FailurePoint(
+                step_number=fp["step_number"],
+                step_description=fp["step_description"],
+                reason=fp["reason"]
+            )
+            
             # Return validated response
             return DiagnosisResponse(
                 verdict=result_json["verdict"],
                 explanation=result_json["explanation"],
                 evidence=result_json["evidence"],
                 recommended_fix=result_json["recommended_fix"],
-                confidence=result_json["confidence"]
+                confidence=result_json["confidence"],
+                failure_point=failure_point
             )
             
         except json.JSONDecodeError as e:

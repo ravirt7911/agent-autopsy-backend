@@ -12,8 +12,8 @@ class DiagnosisRequest(BaseModel):
     final_output: str = Field(..., description="The final output produced by the agent")
     expected_output: Optional[str] = Field(None, description="Optional: What the output should have been")
 
-    class Config:
-        json_schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "agent_goal": "Find and summarize recent AI safety papers",
                 "instructions": "You are a research assistant. Always plan before taking action.",
@@ -22,6 +22,13 @@ class DiagnosisRequest(BaseModel):
                 "expected_output": "A comprehensive summary of the 10 most recent and relevant papers"
             }
         }
+    }
+
+
+class FailurePoint(BaseModel):
+    step_number: int = Field(..., description="The step number where the agent first failed or went wrong")
+    step_description: str = Field(..., description="Brief description of what happened at that step")
+    reason: str = Field(..., description="Why this step caused the failure")
 
 
 class DiagnosisResponse(BaseModel):
@@ -30,4 +37,5 @@ class DiagnosisResponse(BaseModel):
     evidence: List[str] = Field(..., description="Specific examples from the execution that support the verdict")
     recommended_fix: str = Field(..., description="One clear, actionable recommendation")
     confidence: str = Field(..., description="Confidence level: high, medium, or low")
+    failure_point: FailurePoint = Field(..., description="The specific step where the failure occurred")
 
