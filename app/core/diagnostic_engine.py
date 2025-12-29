@@ -7,6 +7,7 @@ from openai import AsyncOpenAI
 from app.models.schemas import DiagnosisRequest, DiagnosisResponse, FailurePoint
 from app.prompts import DIAGNOSTIC_SYSTEM_PROMPT, build_diagnostic_prompt
 from app.config import settings
+from app.verdict_metadata import get_verdict_metadata
 
 # Initialize OpenAI client lazily
 _client = None
@@ -85,9 +86,14 @@ async def diagnose_agent_failure(request: DiagnosisRequest) -> DiagnosisResponse
                 reason=fp["reason"]
             )
             
-            # Return validated response
+            # Inject deterministic verdict metadata (not AI-generated)
+            verdict_metadata = get_verdict_metadata(result_json["verdict"])
+            
+            # Return validated response with injected metadata
             return DiagnosisResponse(
                 verdict=result_json["verdict"],
+                verdict_summary=verdict_metadata["summary"],
+                impact_statement=verdict_metadata["impact"],
                 explanation=result_json["explanation"],
                 evidence=result_json["evidence"],
                 recommended_fix=result_json["recommended_fix"],

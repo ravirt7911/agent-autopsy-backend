@@ -33,6 +33,8 @@ class FailurePoint(BaseModel):
 
 class DiagnosisResponse(BaseModel):
     verdict: str = Field(..., description="The primary failure type identified")
+    verdict_summary: str = Field(..., description="Short 1-sentence summary of the verdict (deterministically injected)")
+    impact_statement: str = Field(..., description="2-3 sentence impact explanation (deterministically injected)")
     explanation: str = Field(..., description="Plain English explanation of what went wrong")
     evidence: List[str] = Field(..., description="Specific examples from the execution that support the verdict")
     recommended_fix: str = Field(..., description="One clear, actionable recommendation")
